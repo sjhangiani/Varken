@@ -151,6 +151,14 @@ class INIParser(object):
             port = int(env.get('VRKN_INFLUXDB_PORT', self.config.getint('influxdb', 'port')))
             ssl = boolcheck(env.get('VRKN_INFLUXDB_SSL', self.config.get('influxdb', 'ssl')))
             verify_ssl = boolcheck(env.get('VRKN_INFLUXDB_VERIFY_SSL', self.config.get('influxdb', 'verify_ssl')))
+            scheme = 'https://' if ssl else 'http://'
+
+            if scheme != 'https://':
+                verify_ssl = False
+
+            org = env.get('VRKN_INFLUXDB_ORG', self.config.get('influxdb', 'org'))
+            token = env.get('VRKN_INFLUXDB_TOKEN', self.config.get('influxdb', 'token'))
+            bucket = env.get('VRKN_INFLUXDB_Bucket', self.config.get('influxdb', 'bucket'))
 
             username = env.get('VRKN_INFLUXDB_USERNAME', self.config.get('influxdb', 'username'))
             password = env.get('VRKN_INFLUXDB_PASSWORD', self.config.get('influxdb', 'password'))
@@ -230,6 +238,7 @@ class INIParser(object):
                                                   queue=queue, get_missing_run_seconds=get_missing_run_seconds)
 
                         if service == 'tautulli':
+                            port = int(env.get(f'VRKN_{envsection}_PORT', self.config.getint(section, 'port')))
                             fallback_ip = env.get(f'VRKN_{envsection}_FALLBACK_IP',
                                                   self.config.get(section, 'fallback_ip'))
 
@@ -257,7 +266,7 @@ class INIParser(object):
                             maxmind_license_key = env.get('VRKN_GLOBAL_MAXMIND_LICENSE_KEY',
                                                           self.config.get('global', 'maxmind_license_key'))
 
-                            server = TautulliServer(id=server_id, url=scheme + url, api_key=apikey,
+                            server = TautulliServer(id=server_id, url=scheme + url + ':' + str(port), api_key=apikey,
                                                     verify_ssl=verify_ssl, get_activity=get_activity,
                                                     fallback_ip=fallback_ip, get_stats=get_stats,
                                                     get_activity_run_seconds=get_activity_run_seconds,
